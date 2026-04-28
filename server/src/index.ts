@@ -52,6 +52,17 @@ app.get('/api/icons', (_req, res) => {
   }
 });
 
+// Return sound-bite clips
+app.get('/api/clips', (_req, res) => {
+  try {
+    const sfxDir = join(__dirname, '../../client/public/assets/sfx');
+    const files = readdirSync(sfxDir).filter((f) => /\.mp3$/i.test(f));
+    res.json({ clips: files.map((f) => `/assets/sfx/${f}`) });
+  } catch {
+    res.json({ clips: [] });
+  }
+});
+
 // Return Ed's embarrassing photos
 app.get('/api/photos', (_req, res) => {
   try {

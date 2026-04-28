@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSocket } from '../hooks/useSocket';
 import { useEdPhotos } from '../hooks/useEdPhotos';
+import { useClips } from '../hooks/useClips';
 import PlayerAvatar from '../components/PlayerAvatar';
 import Leaderboard from '../components/Leaderboard';
 import QRCodeDisplay from '../components/QRCodeDisplay';
@@ -32,6 +33,7 @@ export default function HostScreen() {
   const { gameState, hostNext, hostStartGame, hostReset } = useSocket();
   const { phase, players, currentPrompt, currentGameType, currentGameName, results, answeredPlayerIds } = gameState;
   const { photos, random } = useEdPhotos();
+  const { playRandomClip, stopClip } = useClips();
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [prevPhase, setPrevPhase] = useState(phase);
@@ -50,15 +52,16 @@ export default function HostScreen() {
     if (prevPhase !== phase) {
       if (phase === 'finished') {
         setShowConfetti(true);
+        stopClip();
         playSound('winner');
       } else if (phase === 'results') {
-        playSound('reveal');
+        playRandomClip(); // 🎬 random sound bite after every round
       } else if (phase === 'leaderboard') {
         playSound('correct');
       }
       setPrevPhase(phase);
     }
-  }, [phase, prevPhase]);
+  }, [phase, prevPhase, playRandomClip, stopClip]);
 
   const answeredCount = answeredPlayerIds.length;
   const connectedCount = players.filter((p) => p.connected).length;
