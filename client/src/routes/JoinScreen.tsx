@@ -6,6 +6,19 @@ import ConfettiBurst from '../components/ConfettiBurst';
 import { playSound } from '../utils/assets';
 import type { Player } from '../games/gamesConfig';
 
+// Fetches available icon paths from the server
+function useIcons() {
+  const [icons, setIcons] = useState<string[]>([]);
+  useEffect(() => {
+    const base = `${window.location.protocol}//${window.location.hostname}:3001`;
+    fetch(`${base}/api/icons`)
+      .then((r) => r.json())
+      .then(({ icons }: { icons: string[] }) => setIcons(icons))
+      .catch(() => setIcons([]));
+  }, []);
+  return icons;
+}
+
 export default function JoinScreen() {
   const {
     gameState,
@@ -24,7 +37,10 @@ export default function JoinScreen() {
 
   const { phase, currentPrompt, currentGameType, players, answeredPlayerIds, drawings } = gameState;
 
+  const icons = useIcons();
   const [nameInput, setNameInput] = useState('');
+  const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
+  const [step, setStep] = useState<'name' | 'icon'>('name');
   const [joined, setJoined] = useState(false);
   const [tapped, setTapped] = useState(false);
   const [earlyTap, setEarlyTap] = useState(false);
@@ -44,10 +60,15 @@ export default function JoinScreen() {
     if (phase === 'finished') setShowConfetti(true);
   }, [phase]);
 
+  const handleNameNext = () => {
+    if (!nameInput.trim()) return;
+    setStep('icon');
+  };
+
   const handleJoin = () => {
     const name = nameInput.trim();
-    if (!name) return;
-    joinRoom(name);
+    if (!name || !selectedIcon) return;
+    joinRoom(name, selectedIcon);
     setJoined(true);
   };
 
@@ -80,38 +101,96 @@ export default function JoinScreen() {
     );
   }
 
-  // ── Name entry ─────────────────────────────────────────────────────────────
+  // ── Step 1: Name entry ─────────────────────────────────────────────────────
   if (!joined || !myId) {
+    if (step === 'name') {
+      return (
+        <PhoneShell>
+          <div className="flex flex-col items-center justify-center h-full gap-6 px-6">
+            <div className="text-center">
+              <div className="text-6xl mb-2">🎉</div>
+              <h1 className="text-4xl font-black gradient-text">Ed Party</h1>
+              <p className="text-white/40 mt-1">Enter your name to join</p>
+            </div>
+            <div className="w-full">
+              <input
+                autoFocus
+                type="text"
+                maxLength={20}
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleNameNext()}
+                placeholder="Your name..."
+                className="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white text-2xl font-bold text-center placeholder-white/30 outline-none focus:border-violet-500 focus:bg-white/15 transition-all"
+              />
+            </div>
+            <button
+              onClick={handleNameNext}
+              disabled={!nameInput.trim()}
+              className={`phone-btn transition-all ${
+                nameInput.trim()
+                  ? 'bg-gradient-to-r from-violet-600 to-pink-600 text-white'
+                  : 'bg-white/10 text-white/30 cursor-not-allowed'
+              }`}
+            >
+              Next →
+            </button>
+          </div>
+        </PhoneShell>
+      );
+    }
+
+    // ── Step 2: Icon picker ──────────────────────────────────────────────────
     return (
-      <PhoneShell>
-        <div className="flex flex-col items-center justify-center h-full gap-6 px-6">
+      <PhoneShell scroll>
+        <div className="flex flex-col gap-5 px-5 py-6">
           <div className="text-center">
-            <div className="text-6xl mb-2">🎉</div>
-            <h1 className="text-4xl font-black gradient-text">Ed Party</h1>
-            <p className="text-white/40 mt-1">Enter your name to join</p>
+            <button onClick={() => setStep('name')} className="text-white/30 text-sm mb-1">← Back</button>
+            <h2 className="text-2xl font-black text-white">Pick your face</h2>
+            <p className="text-white/40 text-sm mt-1">Playing as <span className="text-white font-bold">{nameInput}</span></p>
           </div>
-          <div className="w-full">
-            <input
-              autoFocus
-              type="text"
-              maxLength={20}
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
-              placeholder="Your name..."
-              className="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white text-2xl font-bold text-center placeholder-white/30 outline-none focus:border-violet-500 focus:bg-white/15 transition-all"
-            />
-          </div>
+
+          {icons.length === 0 ? (
+            <div className="text-center text-white/30 py-8">Loading icons...</div>
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              {icons.map((iconUrl) => {
+                const isSelected = selectedIcon === iconUrl;
+                const fileName = iconUrl.split('/').pop()?.replace(/\.[^.]+$/, '') ?? '';
+                return (
+                  <button
+                    key={iconUrl}
+                    onClick={() => { setSelectedIcon(iconUrl); playSound('click'); }}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all active:scale-95 ${
+                      isSelected
+                        ? 'border-violet-500 bg-violet-500/20 scale-105'
+                        : 'border-white/10 bg-white/5'
+                    }`}
+                  >
+                    <img
+                      src={iconUrl}
+                      alt={fileName}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                    <span className="text-xs font-semibold capitalize text-white/70 truncate w-full text-center">
+                      {fileName}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           <button
             onClick={handleJoin}
-            disabled={!nameInput.trim()}
-            className={`phone-btn transition-all ${
-              nameInput.trim()
+            disabled={!selectedIcon}
+            className={`phone-btn mt-2 transition-all ${
+              selectedIcon
                 ? 'bg-gradient-to-r from-violet-600 to-pink-600 text-white'
                 : 'bg-white/10 text-white/30 cursor-not-allowed'
             }`}
           >
-            Join Game →
+            {selectedIcon ? "Let's Go! 🎉" : 'Pick a face first'}
           </button>
         </div>
       </PhoneShell>

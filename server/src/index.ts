@@ -2,7 +2,19 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import { networkInterfaces } from 'os';
+import { readdirSync } from 'fs';
+import { join } from 'path';
 import * as gm from './gameManager';
+
+function getLocalIp(): string {
+  for (const ifaces of Object.values(networkInterfaces())) {
+    for (const iface of ifaces ?? []) {
+      if (iface.family === 'IPv4' && !iface.internal) return iface.address;
+    }
+  }
+  return 'localhost';
+}
 
 const app = express();
 const httpServer = createServer(app);
@@ -21,10 +33,25 @@ const ROOM_CODE = 'ED2026';
 
 // Wire up the broadcast function so gameManager can push state
 gm.setBroadcastFn(() => {
-  io.to(ROOM_CODE).emit('room_update', gm.getPublicState());
+  io.emit('room_update', gm.getPublicState());
 });
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
+app.get('/api/info', (_req, res) => res.json({ localIp: getLocalIp(), port: PORT }));
+
+// Return the list of player icon files so the client knows what's available
+app.get('/api/icons', (_req, res) => {
+  try {
+    const iconsDir = join(__dirname, '../../client/public/assets/players/icons');
+    const files = readdirSync(iconsDir).filter((f) =>
+      /\.(png|jpg|jpeg|gif|webp)$/i.test(f)
+    );
+    const icons = files.map((f) => `/assets/players/icons/${f}`);
+    res.json({ icons });
+  } catch {
+    res.json({ icons: [] });
+  }
+});
 
 io.on('connection', (socket) => {
   console.log(`[connect] ${socket.id}`);
@@ -33,12 +60,12 @@ io.on('connection', (socket) => {
   socket.emit('room_update', gm.getPublicState());
 
   // ── join_room ───────────────────────────────────────────────────────────────
-  socket.on('join_room', ({ name }: { name: string }) => {
+  socket.on('join_room', ({ name, iconUrl }: { name: string; iconUrl?: string }) => {
     const trimmedName = (name ?? '').trim().slice(0, 20);
     if (!trimmedName) return;
 
     socket.join(ROOM_CODE);
-    const { playerId, player } = gm.joinRoom(socket.id, trimmedName);
+    const { playerId, player } = gm.joinRoom(socket.id, trimmedName, iconUrl);
 
     // Tell THIS client who they are
     socket.emit('you_joined', { playerId, player });
@@ -96,7 +123,10 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001;
 httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n🎉 Ed Party server running on port ${PORT}`);
-  console.log(`   Room code: ${ROOM_CODE}`);
-  console.log(`   Health:    http://localhost:${PORT}/health\n`);
+  const ip = getLocalIp();
+  console.log(`\n🎉 Ed Party server running`);
+  console.log(`   Local:   http://localhost:${PORT}`);
+  console.log(`   Network: http://${ip}:${PORT}`);
+  console.log(`\n   Host screen: http://${ip}:5173/host`);
+  console.log(`   Join URL:    http://${ip}:5173/join\n`);
 });

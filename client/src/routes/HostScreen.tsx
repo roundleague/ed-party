@@ -8,9 +8,25 @@ import ConfettiBurst from '../components/ConfettiBurst';
 import { GAME_COLORS, GAME_EMOJIS, ROOM_CODE, type Player } from '../games/gamesConfig';
 import { playSound } from '../utils/assets';
 
-const JOIN_URL = `${window.location.protocol}//${window.location.hostname}:${window.location.port || '5173'}/join`;
+function useJoinUrl() {
+  const [joinUrl, setJoinUrl] = useState('');
+  useEffect(() => {
+    const serverBase = `${window.location.protocol}//${window.location.hostname}:3001`;
+    fetch(`${serverBase}/api/info`)
+      .then((r) => r.json())
+      .then(({ localIp }: { localIp: string }) => {
+        setJoinUrl(`http://${localIp}:5173/join`);
+      })
+      .catch(() => {
+        // fallback: use whatever hostname the host opened the page with
+        setJoinUrl(`${window.location.protocol}//${window.location.hostname}:5173/join`);
+      });
+  }, []);
+  return joinUrl;
+}
 
 export default function HostScreen() {
+  const joinUrl = useJoinUrl();
   const { gameState, hostNext, hostStartGame, hostReset } = useSocket();
   const { phase, players, currentPrompt, currentGameType, currentGameName, results, answeredPlayerIds } = gameState;
 
@@ -50,7 +66,7 @@ export default function HostScreen() {
           <div className="flex gap-12 items-start">
             {/* QR Code */}
             <div className="text-center">
-              <QRCodeDisplay url={JOIN_URL} size={200} />
+              <QRCodeDisplay url={joinUrl} size={200} />
               <p className="mt-3 text-white/40 text-sm">Scan to join</p>
             </div>
 
@@ -60,7 +76,7 @@ export default function HostScreen() {
               <div className="text-8xl font-black tracking-wider text-white glass px-8 py-4 rounded-3xl">
                 {ROOM_CODE}
               </div>
-              <div className="text-sm text-white/40 mt-3">go to {JOIN_URL}</div>
+              <div className="text-sm text-white/40 mt-3">go to {joinUrl}</div>
             </div>
           </div>
 

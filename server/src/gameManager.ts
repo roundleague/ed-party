@@ -316,12 +316,13 @@ function pickIcon(): string {
     : PLAYER_ICONS[players.size % PLAYER_ICONS.length];
 }
 
-export function joinRoom(socketId: string, name: string): { playerId: string; player: Player } {
+export function joinRoom(socketId: string, name: string, iconUrl?: string): { playerId: string; player: Player } {
   // Reconnect by name if player already exists
   for (const [id, p] of players.entries()) {
     if (p.name.toLowerCase() === name.toLowerCase()) {
       p.socketId = socketId;
       p.connected = true;
+      if (iconUrl) p.iconUrl = iconUrl;
       broadcast();
       return { playerId: id, player: toPublicPlayer(p) };
     }
@@ -330,7 +331,7 @@ export function joinRoom(socketId: string, name: string): { playerId: string; pl
   const player: InternalPlayer = {
     id,
     name,
-    iconUrl: pickIcon(),
+    iconUrl: iconUrl ?? pickIcon(),
     score: 0,
     connected: true,
     socketId,

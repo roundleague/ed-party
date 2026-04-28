@@ -29,7 +29,7 @@ export interface UseSocketReturn {
   hasAnswered: boolean;
   hasVoted: boolean;
   hasDrawn: boolean;
-  joinRoom: (name: string) => void;
+  joinRoom: (name: string, iconUrl?: string) => void;
   submitAnswer: (answer: number | boolean) => void;
   submitVote: (targetId: string) => void;
   submitDrawing: (imageData: string) => void;
@@ -92,8 +92,8 @@ export function useSocket(): UseSocketReturn {
     socketRef.current?.emit(event, data);
   }, []);
 
-  const joinRoom = useCallback((name: string) => {
-    emit('join_room', { name });
+  const joinRoom = useCallback((name: string, iconUrl?: string) => {
+    emit('join_room', { name, iconUrl });
   }, [emit]);
 
   const submitAnswer = useCallback((answer: number | boolean) => {
