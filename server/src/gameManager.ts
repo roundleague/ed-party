@@ -112,57 +112,62 @@ export interface PublicGameState {
   totalGames: number;
 }
 
-// ─── ✏️ CUSTOMIZE: Who Knows Ed Best questions ───────────────────────────────
+// ─── ✏️ CUSTOMIZE: Multiple choice questions ─────────────────────────────────
 // correctAnswer is the zero-based index of the correct option.
 const WHO_KNOWS_ED_QUESTIONS = [
   {
-    question: "What is Ed's go-to drunk order?",
-    options: ["Beer", "Whiskey Neat", "Vodka Redbull", "Whatever's cheapest"],
-    correctAnswer: 0,
+    question: "What is the capital of California?",
+    options: ["Los Angeles", "Sacramento", "San Francisco", "San Diego"],
+    correctAnswer: 1,
   },
   {
-    question: "If Ed could only eat one food forever, what would he pick?",
-    options: ["Pizza", "Tacos", "Burgers", "Sushi"],
-    correctAnswer: 0,
-  },
-  {
-    question: "What sport is Ed most likely to randomly injure himself playing?",
-    options: ["Basketball", "Soccer", "Golf (somehow)", "Mario Kart"],
+    question: "What is the capital of Texas?",
+    options: ["Houston", "Dallas", "Austin", "San Antonio"],
     correctAnswer: 2,
   },
   {
-    question: "What's Ed's biggest pet peeve?",
-    options: ["Bad drivers", "Slow Wi-Fi", "People who don't use turn signals", "Cold coffee"],
-    correctAnswer: 1,
+    question: "What is the capital of Florida?",
+    options: ["Miami", "Orlando", "Tampa", "Tallahassee"],
+    correctAnswer: 3,
   },
   {
-    question: "Where is Ed most likely to be found on a random Friday night?",
-    options: ["At a bar", "Home on the couch", "At the gym", "Helping someone move"],
-    correctAnswer: 1,
+    question: "What is the capital of New York?",
+    options: ["New York City", "Buffalo", "Albany", "Syracuse"],
+    correctAnswer: 2,
+  },
+  {
+    question: "What is the capital of Pennsylvania?",
+    options: ["Philadelphia", "Pittsburgh", "Harrisburg", "Allentown"],
+    correctAnswer: 2,
   },
 ];
 
-// ─── ✏️ CUSTOMIZE: Ed Stories (Real or Fake) ─────────────────────────────────
-// isReal: true = this actually happened. photoUrl: optional asset path.
+// ─── ✏️ CUSTOMIZE: True / False questions ────────────────────────────────────
+// isReal: true = the statement is correct (REAL), false = it's wrong (FAKE).
 const ED_STORIES = [
   {
-    story: 'Ed once convinced a bouncer he was a food critic to skip a two-hour line.',
+    story: '7 × 8 = 56',
     isReal: true,
     photoUrl: null,
   },
   {
-    story: 'Ed finished a half-marathon in the top 10% with absolutely zero training.',
-    isReal: false,
+    story: '144 ÷ 12 = 13',
+    isReal: false, // answer is 12
     photoUrl: null,
   },
   {
-    story: 'Ed accidentally joined a flash mob and kept going because he "didn\'t want to be rude."',
+    story: '15 + 27 = 43',
+    isReal: false, // answer is 42
+    photoUrl: null,
+  },
+  {
+    story: '9² = 81',
     isReal: true,
     photoUrl: null,
   },
   {
-    story: 'Ed has never cried at a movie. Not once. Not even during Up.',
-    isReal: false,
+    story: '√64 = 9',
+    isReal: false, // answer is 8
     photoUrl: null,
   },
 ];
@@ -199,16 +204,16 @@ const GAME_SEQUENCE: GameType[] = [
 ];
 
 const GAME_NAMES: Record<GameType, string> = {
-  who_knows_ed: 'Who Knows Ed Best?',
-  ed_story: 'Guess the Ed Story',
+  who_knows_ed: 'US State Capitals',
+  ed_story: 'True or False: Math Edition',
   draw_ed: 'Draw Ed',
   fastest_finger: 'Fastest Finger',
   most_likely_to: 'Most Likely To...',
 };
 
 const GAME_DESCRIPTIONS: Record<GameType, string> = {
-  who_knows_ed: 'How well do you really know the groom? Answer multiple choice questions about Ed.',
-  ed_story: 'Real or Fake? Vote on stories from Ed\'s life.',
+  who_knows_ed: 'Pick the correct state capital from 4 options.',
+  ed_story: 'Is the math equation correct? Vote REAL or FAKE.',
   draw_ed: 'Draw Ed based on the prompt. Everyone votes for the funniest.',
   fastest_finger: 'Wait for the signal then TAP as fast as you can.',
   most_likely_to: 'Vote for the person in the room who best fits the description.',
