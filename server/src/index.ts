@@ -46,10 +46,22 @@ app.get('/api/icons', (_req, res) => {
     const files = readdirSync(iconsDir).filter((f) =>
       /\.(png|jpg|jpeg|gif|webp)$/i.test(f)
     );
-    const icons = files.map((f) => `/assets/players/icons/${f}`);
-    res.json({ icons });
+    res.json({ icons: files.map((f) => `/assets/players/icons/${f}`) });
   } catch {
     res.json({ icons: [] });
+  }
+});
+
+// Return Ed's embarrassing photos
+app.get('/api/photos', (_req, res) => {
+  try {
+    const photosDir = join(__dirname, '../../client/public/assets/ed/photos');
+    const files = readdirSync(photosDir).filter((f) =>
+      /\.(png|jpg|jpeg|gif|webp)$/i.test(f)
+    );
+    res.json({ photos: files.map((f) => `/assets/ed/photos/${f}`) });
+  } catch {
+    res.json({ photos: [] });
   }
 });
 

@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSocket } from '../hooks/useSocket';
+import { useEdPhotos } from '../hooks/useEdPhotos';
 import PlayerAvatar from '../components/PlayerAvatar';
 import Leaderboard from '../components/Leaderboard';
 import QRCodeDisplay from '../components/QRCodeDisplay';
 import HostControls from '../components/HostControls';
 import ConfettiBurst from '../components/ConfettiBurst';
+import EdPhotoCard from '../components/EdPhotoCard';
 import { GAME_COLORS, GAME_EMOJIS, ROOM_CODE, type Player } from '../games/gamesConfig';
 import { playSound } from '../utils/assets';
 
@@ -29,9 +31,20 @@ export default function HostScreen() {
   const joinUrl = useJoinUrl();
   const { gameState, hostNext, hostStartGame, hostReset } = useSocket();
   const { phase, players, currentPrompt, currentGameType, currentGameName, results, answeredPlayerIds } = gameState;
+  const { photos, random } = useEdPhotos();
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [prevPhase, setPrevPhase] = useState(phase);
+
+  // Pick a new photo each time the phase changes so Ed keeps "reacting"
+  const [activePhoto, setActivePhoto] = useState<string | null>(null);
+  const prevPhotoRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (photos.length === 0) return;
+    const next = random(prevPhotoRef.current ?? undefined);
+    prevPhotoRef.current = next;
+    setActivePhoto(next);
+  }, [phase, gameState.currentRoundIndex, photos, random]);
 
   useEffect(() => {
     if (prevPhase !== phase) {
@@ -57,10 +70,18 @@ export default function HostScreen() {
       {/* ── LOBBY ─────────────────────────────────────────────────────────── */}
       {phase === 'lobby' && (
         <div className="flex-1 flex flex-col items-center justify-center gap-8 animate-fade-in">
-          <div className="text-center">
-            <div className="text-6xl mb-2">🎉</div>
-            <h1 className="text-7xl font-black gradient-text mb-1">Ed Party</h1>
-            <p className="text-white/50 text-xl">Bachelor Party Edition</p>
+          <div className="flex items-center gap-8">
+            {activePhoto && (
+              <EdPhotoCard src={activePhoto} size="lg" rotate caption="the man of the hour" />
+            )}
+            <div className="text-center">
+              <div className="text-6xl mb-2">🎉</div>
+              <h1 className="text-7xl font-black gradient-text mb-1">Ed Party</h1>
+              <p className="text-white/50 text-xl">Bachelor Party Edition</p>
+            </div>
+            {photos[1] && (
+              <EdPhotoCard src={photos[1]} size="lg" rotate caption="legend" />
+            )}
           </div>
 
           <div className="flex gap-12 items-start">
@@ -111,12 +132,20 @@ export default function HostScreen() {
       {/* ── GAME INTRO ────────────────────────────────────────────────────── */}
       {phase === 'game_intro' && currentGameType && (
         <div className="flex-1 flex flex-col items-center justify-center gap-8 animate-bounce-in">
-          <div className={`text-center p-16 rounded-[3rem] bg-gradient-to-br ${GAME_COLORS[currentGameType]} shadow-2xl`}>
-            <div className="text-9xl mb-4">{GAME_EMOJIS[currentGameType]}</div>
-            <h1 className="text-6xl font-black text-white mb-3">{currentGameName}</h1>
-            <div className="text-xl text-white/70">
-              Game {gameState.currentGameIndex + 1} of {gameState.totalGames}
+          <div className={`flex items-center gap-8 p-14 rounded-[3rem] bg-gradient-to-br ${GAME_COLORS[currentGameType]} shadow-2xl`}>
+            {activePhoto && (
+              <EdPhotoCard src={activePhoto} size="md" rotate className="flex-shrink-0" />
+            )}
+            <div className="text-center">
+              <div className="text-8xl mb-3">{GAME_EMOJIS[currentGameType]}</div>
+              <h1 className="text-5xl font-black text-white mb-2">{currentGameName}</h1>
+              <div className="text-lg text-white/70">
+                Game {gameState.currentGameIndex + 1} of {gameState.totalGames}
+              </div>
             </div>
+            {photos.length > 1 && (
+              <EdPhotoCard src={photos[(gameState.currentGameIndex + 1) % photos.length]} size="md" rotate className="flex-shrink-0" />
+            )}
           </div>
           <HostControls onNext={hostNext} onReset={hostReset} nextLabel="Let's Go →" />
         </div>
@@ -277,7 +306,12 @@ export default function HostScreen() {
 
       {/* ── RESULTS ───────────────────────────────────────────────────────── */}
       {phase === 'results' && results && (
-        <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-bounce-in">
+        <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-bounce-in relative">
+          {activePhoto && (
+            <div className="absolute top-4 right-4">
+              <EdPhotoCard src={activePhoto} size="sm" rotate />
+            </div>
+          )}
           {/* WHO KNOWS ED BEST results */}
           {results.type === 'who_knows_ed' && results.playerAnswers && (
             <>
@@ -452,6 +486,9 @@ export default function HostScreen() {
       {/* ── LEADERBOARD ────────────────────────────────────────────────────── */}
       {phase === 'leaderboard' && (
         <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-fade-in">
+          {activePhoto && (
+            <EdPhotoCard src={activePhoto} size="sm" rotate caption="watching you lose" />
+          )}
           <Leaderboard players={players} title="🏆 Standings" />
           <HostControls
             onNext={hostNext}
@@ -464,11 +501,20 @@ export default function HostScreen() {
       {/* ── FINISHED ───────────────────────────────────────────────────────── */}
       {phase === 'finished' && (
         <div className="flex-1 flex flex-col items-center justify-center gap-8 animate-bounce-in">
-          <div className="text-center">
-            <div className="text-8xl mb-2">🎊</div>
-            <h1 className="text-7xl font-black gradient-text mb-2">Game Over!</h1>
-            <p className="text-white/40 text-xl">Congratulations, Ed! 🍾</p>
+          <div className="flex items-center gap-10">
+            {/* Flanking Ed photos */}
+            {photos[0] && <EdPhotoCard src={photos[0]} size="lg" rotate />}
+            <div className="text-center">
+              <div className="text-8xl mb-2">🎊</div>
+              <h1 className="text-7xl font-black gradient-text mb-2">Game Over!</h1>
+              <p className="text-white/40 text-xl">Congratulations, Ed! 🍾</p>
+            </div>
+            {photos[1] && <EdPhotoCard src={photos[1]} size="lg" rotate />}
           </div>
+          {/* Big centre Ed photo */}
+          {activePhoto && (
+            <EdPhotoCard src={activePhoto} size="xl" rotate={false} caption="🎊 The Man, The Myth, The Legend 🎊" />
+          )}
           {players.length > 0 && (
             <div className="text-center">
               <div className="text-white/40 uppercase tracking-widest text-sm mb-3">Champion</div>
