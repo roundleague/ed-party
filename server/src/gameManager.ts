@@ -116,29 +116,24 @@ export interface PublicGameState {
 // correctAnswer is the zero-based index of the correct option.
 const WHO_KNOWS_ED_QUESTIONS = [
   {
-    question: "What is the capital of California?",
-    options: ["Los Angeles", "Sacramento", "San Francisco", "San Diego"],
+    question: "Titus Tran lived from ____",
+    options: ["Jan 2016 – May 2018", "Mar 2018 – Feb 2020", "Dec 2017 – Oct 2019", "Jun 2019 – Nov 2021"],
+    correctAnswer: 2,
+  },
+  {
+    question: "Ed's first job after college was ____",
+    options: ["Accountant at Platt Electric", "Currency Transaction Reporter at U.S. Bank", "Technician at Seagate", "Sales clerk at New Unto Others"],
     correctAnswer: 1,
   },
   {
-    question: "What is the capital of Texas?",
-    options: ["Houston", "Dallas", "Austin", "San Antonio"],
+    question: "Ed and Joy started dating on ____",
+    options: ["Feb 14, 2021", "Nov 20, 2021", "Jan 14, 2022", "Mar 7, 2022"],
     correctAnswer: 2,
   },
   {
-    question: "What is the capital of Florida?",
-    options: ["Miami", "Orlando", "Tampa", "Tallahassee"],
+    question: "Edward Tran is recognized as an Ordained Minister with ____",
+    options: ["American Marriage Ministries", "Open Ministry", "United Church of Christ", "Universal Life Church Ministries"],
     correctAnswer: 3,
-  },
-  {
-    question: "What is the capital of New York?",
-    options: ["New York City", "Buffalo", "Albany", "Syracuse"],
-    correctAnswer: 2,
-  },
-  {
-    question: "What is the capital of Pennsylvania?",
-    options: ["Philadelphia", "Pittsburgh", "Harrisburg", "Allentown"],
-    correctAnswer: 2,
   },
 ];
 
@@ -204,7 +199,7 @@ const GAME_SEQUENCE: GameType[] = [
 ];
 
 const GAME_NAMES: Record<GameType, string> = {
-  who_knows_ed: 'US State Capitals',
+  who_knows_ed: 'Who Knows Ed Best?',
   ed_story: 'True or False: Math Edition',
   draw_ed: 'Draw Ed',
   fastest_finger: 'Fastest Finger',
@@ -212,7 +207,7 @@ const GAME_NAMES: Record<GameType, string> = {
 };
 
 const GAME_DESCRIPTIONS: Record<GameType, string> = {
-  who_knows_ed: 'Pick the correct state capital from 4 options.',
+  who_knows_ed: 'How well do you really know Ed? Pick the right answer.',
   ed_story: 'Is the math equation correct? Vote REAL or FAKE.',
   draw_ed: 'Draw Ed based on the prompt. Everyone votes for the funniest.',
   fastest_finger: 'Wait for the signal then TAP as fast as you can.',
