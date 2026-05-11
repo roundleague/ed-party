@@ -122,6 +122,11 @@ io.on('connection', (socket) => {
     gm.submitAnswer(playerId, answer);
   });
 
+  // ── submit_order ────────────────────────────────────────────────────────────
+  socket.on('submit_order', ({ playerId, order }: { playerId: string; order: string[] }) => {
+    gm.submitOrder(playerId, order);
+  });
+
   // ── submit_vote ─────────────────────────────────────────────────────────────
   socket.on('submit_vote', ({ playerId, targetId }: { playerId: string; targetId: string }) => {
     gm.submitVote(playerId, targetId);

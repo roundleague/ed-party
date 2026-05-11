@@ -282,6 +282,29 @@ export default function HostScreen() {
         </div>
       )}
 
+      {/* ── ED'S LOVE LIFE – prompt ──────────────────────────────────────── */}
+      {phase === 'prompt' && currentGameType === 'love_life' && currentPrompt && (
+        <div className="flex-1 flex flex-col items-center justify-center gap-8 animate-slide-up">
+          <RoundBadge prompt={currentPrompt} />
+          <div className="text-center">
+            <div className="text-7xl mb-3">💘</div>
+            <h2 className="text-4xl font-black">Arrange earliest → latest</h2>
+            <p className="text-white/40 text-lg mt-2">Players are ordering on their phones...</p>
+          </div>
+          <div className="flex flex-wrap gap-3 justify-center">
+            {currentPrompt.names?.map((name) => (
+              <div key={name} className={`glass rounded-xl px-4 py-2 text-sm font-bold flex items-center gap-2 transition-all ${
+                answeredPlayerIds.length > 0 ? 'text-white/60' : 'text-white/40'
+              }`}>
+                {name}
+              </div>
+            ))}
+          </div>
+          <AnsweredBar answered={answeredCount} total={connectedCount} label="Submitted" />
+          <HostControls onNext={hostNext} onReset={hostReset} nextLabel="Reveal →" />
+        </div>
+      )}
+
       {/* ── MOST LIKELY TO – prompt ───────────────────────────────────────── */}
       {phase === 'prompt' && currentGameType === 'most_likely_to' && currentPrompt && (
         <div className="flex-1 flex flex-col items-center justify-center gap-8 animate-slide-up">
@@ -425,6 +448,52 @@ export default function HostScreen() {
                       <div className={`text-2xl font-black ${r.pointsEarned > 0 ? 'text-green-400' : 'text-white/30'}`}>
                         {r.pointsEarned > 0 ? `+${r.pointsEarned}` : r.early ? '🐓' : '0'}
                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ED'S LOVE LIFE results */}
+          {results.type === 'love_life' && results.loveLifeCorrectOrder && (
+            <div className="w-full max-w-3xl">
+              <h2 className="text-3xl font-black text-center gradient-text mb-4">The Correct Order</h2>
+              <div className="flex gap-2 justify-center mb-8">
+                {results.loveLifeCorrectOrder.map((name, i) => (
+                  <div key={name} className="flex flex-col items-center gap-1">
+                    {i > 0 && <div className="absolute -ml-4 mt-3 text-white/30 text-lg">→</div>}
+                    <div className="bg-gradient-to-br from-rose-500 to-pink-700 rounded-xl px-4 py-3 font-black text-center min-w-[70px]">
+                      {name}
+                    </div>
+                    <div className="text-white/30 text-xs">#{i + 1}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-3">
+                {players.map((p) => {
+                  const r = results.loveLifeResults?.[p.id];
+                  if (!r) return null;
+                  return (
+                    <div key={p.id} className="glass rounded-2xl px-5 py-3 flex items-center gap-4">
+                      <PlayerAvatar player={p} size="sm" showName={false} />
+                      <span className="font-bold w-20 truncate">{p.name}</span>
+                      <div className="flex gap-1 flex-1">
+                        {r.order.map((name, i) => {
+                          const correct = name === results.loveLifeCorrectOrder?.[i];
+                          return (
+                            <div
+                              key={i}
+                              className={`flex-1 rounded-lg px-2 py-1 text-xs font-bold text-center ${
+                                correct ? 'bg-green-500/30 text-green-300 border border-green-500/40' : 'bg-red-500/20 text-red-300 border border-red-500/30'
+                              }`}
+                            >
+                              {name}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="text-yellow-400 font-black text-xl w-16 text-right">+{r.pointsEarned}</div>
                     </div>
                   );
                 })}

@@ -33,6 +33,7 @@ export interface UseSocketReturn {
   submitAnswer: (answer: number | boolean) => void;
   submitVote: (targetId: string) => void;
   submitDrawing: (imageData: string) => void;
+  submitOrder: (order: string[]) => void;
   tapAction: () => void;
   hostNext: () => void;
   hostStartGame: () => void;
@@ -115,6 +116,12 @@ export function useSocket(): UseSocketReturn {
     emit('submit_drawing', { playerId: myId, imageData });
   }, [myId, emit]);
 
+  const submitOrder = useCallback((order: string[]) => {
+    if (!myId) return;
+    setHasAnswered(true);
+    emit('submit_order', { playerId: myId, order });
+  }, [myId, emit]);
+
   const tapAction = useCallback(() => {
     if (!myId) return;
     emit('tap_action', { playerId: myId });
@@ -139,6 +146,7 @@ export function useSocket(): UseSocketReturn {
     submitAnswer,
     submitVote,
     submitDrawing,
+    submitOrder,
     tapAction,
     hostNext,
     hostStartGame,

@@ -18,7 +18,8 @@ export type GameType =
   | 'ed_story'
   | 'draw_ed'
   | 'fastest_finger'
-  | 'most_likely_to';
+  | 'most_likely_to'
+  | 'love_life';
 
 export interface Player {
   id: string;
@@ -35,6 +36,7 @@ export interface PromptData {
   story?: string;
   photoUrl?: string | null;
   memory?: string;
+  names?: string[];
   prompt?: string;
   roundNumber: number;
   totalRounds: number;
@@ -73,6 +75,11 @@ export interface VoteEntry {
   voterNames: string[];
 }
 
+export interface LoveLifePlayerResult {
+  order: string[];
+  pointsEarned: number;
+}
+
 export interface RoundResult {
   type: GameType;
   correctAnswer?: number | boolean;
@@ -83,6 +90,8 @@ export interface RoundResult {
   drawingResults?: DrawingEntry[];
   memory?: string;
   memoryAuthor?: string;
+  loveLifeCorrectOrder?: string[];
+  loveLifeResults?: Record<string, LoveLifePlayerResult>;
 }
 
 export interface GameState {
@@ -108,6 +117,7 @@ export const GAME_COLORS: Record<GameType, string> = {
   draw_ed: 'from-pink-600 to-rose-800',
   fastest_finger: 'from-yellow-500 to-orange-700',
   most_likely_to: 'from-green-600 to-teal-800',
+  love_life: 'from-rose-500 to-pink-800',
 };
 
 export const GAME_EMOJIS: Record<GameType, string> = {
@@ -116,6 +126,7 @@ export const GAME_EMOJIS: Record<GameType, string> = {
   draw_ed: '🎨',
   fastest_finger: '⚡',
   most_likely_to: '🤔',
+  love_life: '💘',
 };
 
 export const ROOM_CODE = 'ED2026';

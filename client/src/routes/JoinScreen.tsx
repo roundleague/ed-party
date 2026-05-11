@@ -32,6 +32,7 @@ export default function JoinScreen() {
     submitAnswer,
     submitVote,
     submitDrawing,
+    submitOrder,
     tapAction,
   } = useSocket();
 
@@ -45,13 +46,15 @@ export default function JoinScreen() {
   const [tapped, setTapped] = useState(false);
   const [earlyTap, setEarlyTap] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [loveOrder, setLoveOrder] = useState<string[]>([]);
   const prevPhaseRef = useRef(phase);
 
-  // Reset tap state on phase change
+  // Reset per-round state on phase change
   useEffect(() => {
     if (prevPhaseRef.current !== phase) {
       setTapped(false);
       setEarlyTap(false);
+      setLoveOrder([]);
       prevPhaseRef.current = phase;
     }
   }, [phase]);
@@ -300,6 +303,74 @@ export default function JoinScreen() {
     );
   }
 
+  // ── ED'S LOVE LIFE – order ────────────────────────────────────────────────
+  if (phase === 'prompt' && currentGameType === 'love_life' && currentPrompt) {
+    const allNames = currentPrompt.names ?? [];
+    const remaining = allNames.filter((n) => !loveOrder.includes(n));
+    const allPlaced = loveOrder.length === allNames.length;
+
+    if (hasAnswered) return <PhoneShell><div className="flex flex-col items-center justify-center h-full gap-4 px-4"><div className="text-5xl">💘</div><WaitingMsg /></div></PhoneShell>;
+
+    return (
+      <PhoneShell scroll>
+        <div className="flex flex-col gap-4 px-4 py-5">
+          <div className="text-center">
+            <div className="text-white/40 text-xs uppercase tracking-widest mb-1">
+              Round {currentPrompt.roundNumber}/{currentPrompt.totalRounds}
+            </div>
+            <p className="text-white font-bold text-base">Tap in order: earliest → latest</p>
+          </div>
+
+          {/* Remaining names */}
+          <div>
+            <p className="text-white/40 text-xs uppercase tracking-widest mb-2">Tap to place</p>
+            <div className="flex flex-wrap gap-2">
+              {remaining.map((name) => (
+                <button
+                  key={name}
+                  onClick={() => { setLoveOrder([...loveOrder, name]); playSound('click'); }}
+                  className="px-4 py-2 rounded-xl bg-white/10 border border-white/20 font-bold text-white active:scale-95 transition-all"
+                >
+                  {name}
+                </button>
+              ))}
+              {remaining.length === 0 && <p className="text-white/20 text-sm">All placed!</p>}
+            </div>
+          </div>
+
+          {/* Current order */}
+          <div>
+            <p className="text-white/40 text-xs uppercase tracking-widest mb-2">Your order</p>
+            <div className="flex flex-col gap-2">
+              {loveOrder.map((name, i) => (
+                <div key={name} className="flex items-center gap-3 glass rounded-xl px-4 py-2">
+                  <span className="text-rose-400 font-black text-sm w-5">{i + 1}.</span>
+                  <span className="flex-1 font-bold">{name}</span>
+                  <button
+                    onClick={() => setLoveOrder(loveOrder.filter((_, j) => j !== i))}
+                    className="text-white/30 hover:text-white/60 text-lg transition-colors"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              {loveOrder.length === 0 && <p className="text-white/20 text-sm">Nothing placed yet</p>}
+            </div>
+          </div>
+
+          {allPlaced && (
+            <button
+              onClick={() => { submitOrder(loveOrder); playSound('click'); }}
+              className="phone-btn bg-gradient-to-r from-rose-600 to-pink-700 text-white text-xl mt-2"
+            >
+              Submit Order 💘
+            </button>
+          )}
+        </div>
+      </PhoneShell>
+    );
+  }
+
   // ── DRAW ED – drawing ──────────────────────────────────────────────────────
   if (phase === 'drawing' && currentPrompt) {
     return (
@@ -464,6 +535,31 @@ export default function JoinScreen() {
               )}
             </>
           )}
+          {gameState.results?.type === 'love_life' && (() => {
+            const r = gameState.results.loveLifeResults?.[myId ?? ''];
+            const correct = gameState.results.loveLifeCorrectOrder ?? [];
+            if (!r) return null;
+            return (
+              <>
+                <div className="text-5xl">💘</div>
+                <div className={`text-4xl font-black ${r.pointsEarned > 0 ? 'text-yellow-400' : 'text-red-400'}`}>
+                  +{r.pointsEarned} pts
+                </div>
+                <div className="w-full max-w-xs flex flex-col gap-1">
+                  {r.order.map((name, i) => {
+                    const isCorrect = name === correct[i];
+                    return (
+                      <div key={i} className={`flex items-center gap-2 rounded-xl px-3 py-1 text-sm font-bold ${isCorrect ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+                        <span className="text-white/40 w-4">{i + 1}.</span>
+                        <span className="flex-1">{name}</span>
+                        <span>{isCorrect ? '✓' : '✗'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            );
+          })()}
           {gameState.results?.type === 'ed_story' && gameState.results.memoryAuthor && (
             <>
               <div className="text-5xl">📖</div>
@@ -581,6 +677,7 @@ function getGameEmoji(gameType: string | null): string {
     draw_ed: '🎨',
     fastest_finger: '⚡',
     most_likely_to: '🤔',
+    love_life: '💘',
   };
   return map[gameType ?? ''] ?? '🎮';
 }
@@ -592,6 +689,7 @@ function getGameHint(gameType: string | null): string {
     draw_ed: 'Draw Ed on your phone!',
     fastest_finger: 'Tap the button as fast as you can!',
     most_likely_to: 'Vote for the person who fits best!',
+    love_life: 'Arrange the names earliest to latest!',
   };
   return map[gameType ?? ''] ?? 'Get ready!';
 }

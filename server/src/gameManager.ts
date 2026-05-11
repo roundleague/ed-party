@@ -28,7 +28,8 @@ export type GameType =
   | 'ed_story'
   | 'draw_ed'
   | 'fastest_finger'
-  | 'most_likely_to';
+  | 'most_likely_to'
+  | 'love_life';
 
 export interface Player {
   id: string;
@@ -49,6 +50,7 @@ export interface PromptData {
   story?: string;
   photoUrl?: string | null;
   memory?: string;
+  names?: string[];
   prompt?: string;
   roundNumber: number;
   totalRounds: number;
@@ -87,6 +89,11 @@ export interface AnswerEntry {
   pointsEarned: number;
 }
 
+export interface LoveLifePlayerResult {
+  order: string[];
+  pointsEarned: number;
+}
+
 export interface RoundResult {
   type: GameType;
   correctAnswer?: number | boolean;
@@ -97,6 +104,8 @@ export interface RoundResult {
   drawingResults?: DrawingEntry[];
   memory?: string;
   memoryAuthor?: string;
+  loveLifeCorrectOrder?: string[];
+  loveLifeResults?: Record<string, LoveLifePlayerResult>;
 }
 
 export interface PublicGameState {
@@ -189,6 +198,18 @@ const FASTEST_FINGER_PROMPTS = [
   'Round 3 – Final round. No excuses.',
 ];
 
+// ─── ✏️ CUSTOMIZE: Ed's Love Life order (earliest → latest) ──────────────────
+const LOVE_LIFE_ORDER = ['Alicia', 'Vina', 'Bri', 'Jasmine', 'Angela', 'Joy'];
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 // ─── ✏️ CUSTOMIZE: Most Likely To prompts ────────────────────────────────────
 const MOST_LIKELY_PROMPTS = [
   'Most likely to lose their phone tonight',
@@ -205,6 +226,7 @@ const GAME_SEQUENCE: GameType[] = [
   'draw_ed',
   'fastest_finger',
   'most_likely_to',
+  'love_life',
 ];
 
 const GAME_NAMES: Record<GameType, string> = {
@@ -213,6 +235,7 @@ const GAME_NAMES: Record<GameType, string> = {
   draw_ed: 'Draw Ed',
   fastest_finger: 'Fastest Finger',
   most_likely_to: 'Most Likely To...',
+  love_life: "Ed's Love Life",
 };
 
 const GAME_DESCRIPTIONS: Record<GameType, string> = {
@@ -221,6 +244,7 @@ const GAME_DESCRIPTIONS: Record<GameType, string> = {
   draw_ed: 'Draw Ed based on the prompt. Everyone votes for the funniest.',
   fastest_finger: 'Wait for the signal then TAP as fast as you can.',
   most_likely_to: 'Vote for the person in the room who best fits the description.',
+  love_life: 'Arrange the names in order from earliest to latest. +50 per correct spot.',
 };
 
 function getGameRounds(gameType: GameType): PromptData[] {
@@ -261,6 +285,13 @@ function getGameRounds(gameType: GameType): PromptData[] {
         roundNumber: i + 1,
         totalRounds: MOST_LIKELY_PROMPTS.length,
       }));
+    case 'love_life':
+      return [{
+        type: 'love_life' as GameType,
+        names: shuffle(LOVE_LIFE_ORDER),
+        roundNumber: 1,
+        totalRounds: 1,
+      }];
   }
 }
 
@@ -275,6 +306,7 @@ interface InternalState {
   answers: Record<string, number | boolean>;
   votes: Record<string, string>;
   drawings: Record<string, string>;
+  orders: Record<string, string[]>;
   results: RoundResult | null;
   tapStartTime: number | null;
   reactionTimes: Record<string, number>;
@@ -294,6 +326,7 @@ let state: InternalState = {
   answers: {},
   votes: {},
   drawings: {},
+  orders: {},
   results: null,
   tapStartTime: null,
   reactionTimes: {},
@@ -384,6 +417,7 @@ function clearRoundData() {
   state.answers = {};
   state.votes = {};
   state.drawings = {};
+  state.orders = {};
   state.results = null;
   state.reactionTimes = {};
   state.earlyTaps = new Set();
@@ -401,7 +435,7 @@ function checkAutoAdvance() {
   if (connected.length === 0) return;
 
   if (state.phase === 'prompt') {
-    const submitted = Object.keys(state.answers).length + Object.keys(state.votes).length;
+    const submitted = Object.keys(state.answers).length + Object.keys(state.votes).length + Object.keys(state.orders).length;
     if (submitted >= connected.length) {
       state.autoAdvanceTimeout = setTimeout(() => computeResults(), 800);
     }
@@ -554,6 +588,7 @@ export function hostReset() {
     answers: {},
     votes: {},
     drawings: {},
+    orders: {},
     results: null,
     tapStartTime: null,
     reactionTimes: {},
@@ -586,6 +621,14 @@ export function submitVote(playerId: string, targetId: string) {
 export function submitDrawing(playerId: string, imageData: string) {
   if (state.phase !== 'drawing') return;
   state.drawings[playerId] = imageData;
+  broadcast();
+  checkAutoAdvance();
+}
+
+export function submitOrder(playerId: string, order: string[]) {
+  if (state.phase !== 'prompt') return;
+  if (state.orders[playerId]) return;
+  state.orders[playerId] = order;
   broadcast();
   checkAutoAdvance();
 }
@@ -695,6 +738,21 @@ function computeResults() {
     }
   }
 
+  else if (gameType === 'love_life') {
+    const correctOrder = LOVE_LIFE_ORDER;
+    result.loveLifeCorrectOrder = correctOrder;
+    result.loveLifeResults = {};
+    for (const [id, order] of Object.entries(state.orders)) {
+      let pointsEarned = 0;
+      for (let i = 0; i < correctOrder.length; i++) {
+        if (order[i] === correctOrder[i]) pointsEarned += 50;
+      }
+      result.loveLifeResults[id] = { order, pointsEarned };
+      const p = players.get(id);
+      if (p) p.score += pointsEarned;
+    }
+  }
+
   else if (gameType === 'most_likely_to') {
     const scored = scoreMostLikelyTo(state.votes);
     result.voteResults = [];
@@ -729,6 +787,7 @@ export function getPublicState(): PublicGameState {
     ...Object.keys(state.votes),
     ...Object.keys(state.drawings),
     ...Object.keys(state.reactionTimes),
+    ...Object.keys(state.orders),
   ];
 
   // Only expose drawings during voting phase
