@@ -4,7 +4,6 @@
 
 import {
   scoreMultipleChoice,
-  scoreEdStory,
   scoreDrawingVotes,
   scoreFastestFinger,
   scoreMostLikelyTo,
@@ -49,6 +48,7 @@ export interface PromptData {
   options?: string[];
   story?: string;
   photoUrl?: string | null;
+  memory?: string;
   prompt?: string;
   roundNumber: number;
   totalRounds: number;
@@ -95,6 +95,8 @@ export interface RoundResult {
   rankings?: TapEntry[];
   voteResults?: VoteEntry[];
   drawingResults?: DrawingEntry[];
+  memory?: string;
+  memoryAuthor?: string;
 }
 
 export interface PublicGameState {
@@ -137,33 +139,40 @@ const WHO_KNOWS_ED_QUESTIONS = [
   },
 ];
 
-// ─── ✏️ CUSTOMIZE: True / False questions ────────────────────────────────────
-// isReal: true = the statement is correct (REAL), false = it's wrong (FAKE).
-const ED_STORIES = [
+// ─── ✏️ CUSTOMIZE: Guess Who Wrote It memories ───────────────────────────────
+// Ed guesses which person wrote each memory. Host reveals the answer.
+const ED_STORIES: { memory: string; author: string }[] = [
   {
-    story: '7 × 8 = 56',
-    isReal: true,
-    photoUrl: null,
+    memory: "Months later after this photo, we would be walking into an Albertsons in Hillsboro. Ed would look at me and say you know who's cute, I would say Julia. Ed would say you too? And then that would be the last time Ed and I shared interest in the same girl because I would go on to date Ed's sister",
+    author: "Tony",
   },
   {
-    story: '144 ÷ 12 = 13',
-    isReal: false, // answer is 12
-    photoUrl: null,
+    memory: "A guy with 5 penises",
+    author: "Tim",
   },
   {
-    story: '15 + 27 = 43',
-    isReal: false, // answer is 42
-    photoUrl: null,
+    memory: "First trip with the guys. I don't remember this photo but Eddie's handicapped knee and too many shots later",
+    author: "Tyler",
   },
   {
-    story: '9² = 81',
-    isReal: true,
-    photoUrl: null,
+    memory: "My innocent ass was exposed to euphemisms for the first time because I had to ask him what RagePalmTree meant.",
+    author: "Andrew",
   },
   {
-    story: '√64 = 9',
-    isReal: false, // answer is 8
-    photoUrl: null,
+    memory: "I still feel bad that I lost his boomerang into the wind",
+    author: "Andrew",
+  },
+  {
+    memory: "getting zoinked out of our minds in Vegas and making a fort in the Airbnb while re-enacting world war 2",
+    author: "Kev",
+  },
+  {
+    memory: "Baby wipes lol…. Ty for the opportunity to raise Ellie together",
+    author: "Charles",
+  },
+  {
+    memory: "This is the moment I think me and Eddie became really close. Our first mission trip together, crying, laughing, doing manual labor and fighting over a girl in the most stupid way possible. I will forever hold this over his head that I walked away the winner and although it was a stupid bet I'll always remember the memories of Eddie seeing my ADULT penis for the first time (it was a really cold alaska night tho if anyone asks)",
+    author: "Taylor",
   },
 ];
 
@@ -200,7 +209,7 @@ const GAME_SEQUENCE: GameType[] = [
 
 const GAME_NAMES: Record<GameType, string> = {
   who_knows_ed: 'Who Knows Ed Best?',
-  ed_story: 'True or False: Math Edition',
+  ed_story: 'Guess Who Wrote It',
   draw_ed: 'Draw Ed',
   fastest_finger: 'Fastest Finger',
   most_likely_to: 'Most Likely To...',
@@ -208,7 +217,7 @@ const GAME_NAMES: Record<GameType, string> = {
 
 const GAME_DESCRIPTIONS: Record<GameType, string> = {
   who_knows_ed: 'How well do you really know Ed? Pick the right answer.',
-  ed_story: 'Is the math equation correct? Vote REAL or FAKE.',
+  ed_story: "Ed guesses who shared each memory. Wrong answer = take a shot with that person.",
   draw_ed: 'Draw Ed based on the prompt. Everyone votes for the funniest.',
   fastest_finger: 'Wait for the signal then TAP as fast as you can.',
   most_likely_to: 'Vote for the person in the room who best fits the description.',
@@ -227,8 +236,7 @@ function getGameRounds(gameType: GameType): PromptData[] {
     case 'ed_story':
       return ED_STORIES.map((s, i) => ({
         type: 'ed_story' as GameType,
-        story: s.story,
-        photoUrl: s.photoUrl ?? null,
+        memory: s.memory,
         roundNumber: i + 1,
         totalRounds: ED_STORIES.length,
       }));
@@ -582,6 +590,14 @@ export function submitDrawing(playerId: string, imageData: string) {
   checkAutoAdvance();
 }
 
+export function awardMemoryPoints(authorId: string) {
+  const p = players.get(authorId);
+  if (p) {
+    p.score += 100;
+    broadcast();
+  }
+}
+
 export function tapAction(playerId: string) {
   if (state.phase === 'tap_waiting') {
     // Early tap – penalize
@@ -628,15 +644,8 @@ function computeResults() {
 
   else if (gameType === 'ed_story') {
     const storyData = ED_STORIES[state.currentRoundIndex];
-    const isReal = storyData?.isReal ?? false;
-    const scored = scoreEdStory(state.answers as Record<string, boolean>, isReal);
-    result.correctAnswer = isReal;
-    result.playerAnswers = {};
-    for (const [id, s] of Object.entries(scored)) {
-      result.playerAnswers[id] = { answer: state.answers[id], ...s };
-      const p = players.get(id);
-      if (p) p.score += s.pointsEarned;
-    }
+    result.memory = storyData.memory;
+    result.memoryAuthor = storyData.author;
   }
 
   else if (gameType === 'draw_ed') {

@@ -34,6 +34,7 @@ export interface PromptData {
   options?: string[];
   story?: string;
   photoUrl?: string | null;
+  memory?: string;
   prompt?: string;
   roundNumber: number;
   totalRounds: number;
@@ -80,6 +81,8 @@ export interface RoundResult {
   rankings?: TapEntry[];
   voteResults?: VoteEntry[];
   drawingResults?: DrawingEntry[];
+  memory?: string;
+  memoryAuthor?: string;
 }
 
 export interface GameState {

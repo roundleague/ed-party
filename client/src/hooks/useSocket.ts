@@ -37,6 +37,7 @@ export interface UseSocketReturn {
   hostNext: () => void;
   hostStartGame: () => void;
   hostReset: () => void;
+  hostAwardMemory: (authorId: string) => void;
 }
 
 export function useSocket(): UseSocketReturn {
@@ -122,6 +123,7 @@ export function useSocket(): UseSocketReturn {
   const hostNext = useCallback(() => emit('host_next'), [emit]);
   const hostStartGame = useCallback(() => emit('host_start_game'), [emit]);
   const hostReset = useCallback(() => emit('host_reset'), [emit]);
+  const hostAwardMemory = useCallback((authorId: string) => emit('host_award_memory', { authorId }), [emit]);
 
   const myPlayer = myId ? (gameState.players.find((p) => p.id === myId) ?? null) : null;
 
@@ -141,5 +143,6 @@ export function useSocket(): UseSocketReturn {
     hostNext,
     hostStartGame,
     hostReset,
+    hostAwardMemory,
   };
 }

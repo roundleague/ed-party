@@ -283,7 +283,7 @@ export default function JoinScreen() {
     );
   }
 
-  // ── ED STORY – vote ────────────────────────────────────────────────────────
+  // ── GUESS WHO WROTE IT – watch screen ─────────────────────────────────────
   if (phase === 'prompt' && currentGameType === 'ed_story' && currentPrompt) {
     return (
       <PhoneShell>
@@ -292,26 +292,9 @@ export default function JoinScreen() {
             Round {currentPrompt.roundNumber}/{currentPrompt.totalRounds}
           </div>
           <div className="glass rounded-2xl p-5 text-center">
-            <p className="text-lg font-semibold text-white leading-snug">{currentPrompt.story}</p>
+            <p className="text-lg font-semibold text-white leading-snug">{currentPrompt.memory}</p>
           </div>
-          {!hasAnswered ? (
-            <div className="flex gap-3">
-              <button
-                onClick={() => { submitAnswer(true); playSound('click'); }}
-                className="flex-1 phone-btn bg-gradient-to-br from-green-600 to-emerald-700 text-white py-7 text-2xl"
-              >
-                ✓ REAL
-              </button>
-              <button
-                onClick={() => { submitAnswer(false); playSound('click'); }}
-                className="flex-1 phone-btn bg-gradient-to-br from-red-600 to-rose-800 text-white py-7 text-2xl"
-              >
-                ✗ FAKE
-              </button>
-            </div>
-          ) : (
-            <WaitingMsg />
-          )}
+          <div className="text-center text-white/40 text-sm mt-2">Who wrote this? Ed decides...</div>
         </div>
       </PhoneShell>
     );
@@ -481,7 +464,14 @@ export default function JoinScreen() {
               )}
             </>
           )}
-          {!myResult && myRank === undefined && !myVoteResult && !myDrawResult && (
+          {gameState.results?.type === 'ed_story' && gameState.results.memoryAuthor && (
+            <>
+              <div className="text-5xl">📖</div>
+              <div className="text-white/50 text-sm uppercase tracking-widest">Written by...</div>
+              <div className="text-4xl font-black text-violet-400">{gameState.results.memoryAuthor}</div>
+            </>
+          )}
+          {!myResult && myRank === undefined && !myVoteResult && !myDrawResult && gameState.results?.type !== 'ed_story' && (
             <div className="text-white/40 text-lg">Watch the host screen!</div>
           )}
 
@@ -598,7 +588,7 @@ function getGameEmoji(gameType: string | null): string {
 function getGameHint(gameType: string | null): string {
   const map: Record<string, string> = {
     who_knows_ed: 'Select the correct answer!',
-    ed_story: 'Vote REAL or FAKE!',
+    ed_story: 'Ed guesses who wrote each memory!',
     draw_ed: 'Draw Ed on your phone!',
     fastest_finger: 'Tap the button as fast as you can!',
     most_likely_to: 'Vote for the person who fits best!',

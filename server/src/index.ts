@@ -132,6 +132,12 @@ io.on('connection', (socket) => {
     gm.submitDrawing(playerId, imageData);
   });
 
+  // ── host_award_memory ───────────────────────────────────────────────────────
+  socket.on('host_award_memory', ({ authorId }: { authorId: string }) => {
+    gm.awardMemoryPoints(authorId);
+    gm.hostNext();
+  });
+
   // ── tap_action ──────────────────────────────────────────────────────────────
   socket.on('tap_action', ({ playerId }: { playerId: string }) => {
     gm.tapAction(playerId);

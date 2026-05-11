@@ -30,7 +30,7 @@ function useJoinUrl() {
 
 export default function HostScreen() {
   const joinUrl = useJoinUrl();
-  const { gameState, hostNext, hostStartGame, hostReset } = useSocket();
+  const { gameState, hostNext, hostStartGame, hostReset, hostAwardMemory } = useSocket();
   const { phase, players, currentPrompt, currentGameType, currentGameName, results, answeredPlayerIds } = gameState;
   const { photos, random } = useEdPhotos();
   const { playRandomClip, stopClip } = useClips();
@@ -177,26 +177,14 @@ export default function HostScreen() {
         </div>
       )}
 
-      {/* ── ED STORY – prompt ─────────────────────────────────────────────── */}
+      {/* ── GUESS WHO WROTE IT – prompt ───────────────────────────────────── */}
       {phase === 'prompt' && currentGameType === 'ed_story' && currentPrompt && (
         <div className="flex-1 flex flex-col items-center justify-center gap-8 animate-slide-up">
           <RoundBadge prompt={currentPrompt} />
           <div className="glass rounded-3xl p-12 max-w-3xl text-center">
-            {currentPrompt.photoUrl && (
-              <img
-                src={currentPrompt.photoUrl}
-                alt="Ed"
-                className="w-48 h-48 rounded-2xl object-cover mx-auto mb-6"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              />
-            )}
-            <p className="text-4xl font-bold leading-relaxed text-white">{currentPrompt.story}</p>
+            <p className="text-4xl font-bold leading-relaxed text-white">{currentPrompt.memory}</p>
           </div>
-          <div className="flex gap-8">
-            <div className="glass px-10 py-4 rounded-2xl text-3xl font-black text-green-400">✓ REAL</div>
-            <div className="glass px-10 py-4 rounded-2xl text-3xl font-black text-red-400">✗ FAKE</div>
-          </div>
-          <AnsweredBar answered={answeredCount} total={connectedCount} />
+          <p className="text-white/40 text-xl">Ed is thinking...</p>
           <HostControls onNext={hostNext} onReset={hostReset} nextLabel="Reveal →" />
         </div>
       )}
@@ -343,39 +331,35 @@ export default function HostScreen() {
             </>
           )}
 
-          {/* ED STORY results */}
+          {/* GUESS WHO WROTE IT results */}
           {results.type === 'ed_story' && (
             <>
-              <div className="text-center">
-                <div className="text-8xl mb-4">{results.correctAnswer ? '✅' : '❌'}</div>
-                <div className="text-6xl font-black">
-                  {results.correctAnswer ? (
-                    <span className="text-green-400">THAT'S REAL!</span>
-                  ) : (
-                    <span className="text-red-400">TOTALLY FAKE!</span>
-                  )}
-                </div>
+              <div className="glass rounded-3xl p-8 max-w-2xl text-center">
+                <p className="text-2xl font-semibold text-white/80 leading-relaxed">{results.memory}</p>
               </div>
-              {results.playerAnswers && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-3xl w-full">
-                  {players.map((p) => {
-                    const entry = results.playerAnswers?.[p.id];
-                    return (
-                      <div
-                        key={p.id}
-                        className={`glass rounded-2xl p-4 text-center border ${
-                          entry?.correct ? 'border-green-500/50 bg-green-500/10' : 'border-red-500/30'
-                        }`}
-                      >
-                        <PlayerAvatar player={p} size="sm" showName showScore={false} />
-                        <div className={`text-2xl mt-1 ${entry?.correct ? 'text-green-400' : 'text-red-400'}`}>
-                          {entry?.correct ? '+100' : '0'}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              <div className="text-center">
+                <div className="text-white/40 text-lg uppercase tracking-widest mb-2">Written by...</div>
+                <div className="text-6xl font-black text-violet-400">{results.memoryAuthor ?? '???'}</div>
+              </div>
+              <div className="text-white/50 text-sm uppercase tracking-widest">Tap who Ed guessed to award +100</div>
+              <div className="flex flex-wrap gap-3 justify-center max-w-3xl">
+                {players.filter((p) => p.connected).map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => hostAwardMemory(p.id)}
+                    className="flex items-center gap-3 glass px-6 py-3 rounded-2xl font-bold text-lg hover:border-green-500/60 hover:bg-green-500/10 active:scale-95 transition-all"
+                  >
+                    <PlayerAvatar player={p} size="sm" showName={false} />
+                    {p.name}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={hostNext}
+                className="px-10 py-4 rounded-2xl bg-gradient-to-r from-orange-600 to-red-700 text-white text-xl font-black active:scale-95 hover:from-orange-500 hover:to-red-600 transition-all"
+              >
+                🥃 Take a Shot — Next
+              </button>
             </>
           )}
 
@@ -482,7 +466,9 @@ export default function HostScreen() {
             </div>
           )}
 
-          <HostControls onNext={hostNext} onReset={hostReset} nextLabel="Continue →" />
+          {results.type !== 'ed_story' && (
+            <HostControls onNext={hostNext} onReset={hostReset} nextLabel="Continue →" />
+          )}
         </div>
       )}
 
