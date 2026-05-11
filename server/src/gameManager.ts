@@ -29,7 +29,8 @@ export type GameType =
   | 'draw_ed'
   | 'fastest_finger'
   | 'most_likely_to'
-  | 'love_life';
+  | 'love_life'
+  | 'porn_or_fitness';
 
 export interface Player {
   id: string;
@@ -210,6 +211,17 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+// ─── ✏️ CUSTOMIZE: Porn or Fitness rounds ────────────────────────────────────
+// Add images to client/public/assets/pof/ and update photoUrl below.
+// isFitness: true = the image is fitness content, false = it's porn.
+const PORN_OR_FITNESS_ROUNDS: { photoUrl: string | null; isFitness: boolean }[] = [
+  { photoUrl: null, isFitness: true },
+  { photoUrl: null, isFitness: false },
+  { photoUrl: null, isFitness: true },
+  { photoUrl: null, isFitness: false },
+  { photoUrl: null, isFitness: false },
+];
+
 // ─── ✏️ CUSTOMIZE: Most Likely To prompts ────────────────────────────────────
 const MOST_LIKELY_PROMPTS = [
   'Most likely to lose their phone tonight',
@@ -225,7 +237,7 @@ const GAME_SEQUENCE: GameType[] = [
   'ed_story',
   'draw_ed',
   'fastest_finger',
-  'most_likely_to',
+  'porn_or_fitness',
   'love_life',
 ];
 
@@ -236,6 +248,7 @@ const GAME_NAMES: Record<GameType, string> = {
   fastest_finger: 'Fastest Finger',
   most_likely_to: 'Most Likely To...',
   love_life: "Ed's Love Life",
+  porn_or_fitness: 'Porn or Fitness?',
 };
 
 const GAME_DESCRIPTIONS: Record<GameType, string> = {
@@ -245,6 +258,7 @@ const GAME_DESCRIPTIONS: Record<GameType, string> = {
   fastest_finger: 'Wait for the signal then TAP as fast as you can.',
   most_likely_to: 'Vote for the person in the room who best fits the description.',
   love_life: 'Arrange the names in order from earliest to latest. +50 per correct spot.',
+  porn_or_fitness: 'Is it porn or is it fitness? +100 if you can tell the difference.',
 };
 
 function getGameRounds(gameType: GameType): PromptData[] {
@@ -292,6 +306,13 @@ function getGameRounds(gameType: GameType): PromptData[] {
         roundNumber: 1,
         totalRounds: 1,
       }];
+    case 'porn_or_fitness':
+      return PORN_OR_FITNESS_ROUNDS.map((r, i) => ({
+        type: 'porn_or_fitness' as GameType,
+        photoUrl: r.photoUrl,
+        roundNumber: i + 1,
+        totalRounds: PORN_OR_FITNESS_ROUNDS.length,
+      }));
   }
 }
 
@@ -735,6 +756,20 @@ function computeResults() {
           early: true,
         });
       }
+    }
+  }
+
+  else if (gameType === 'porn_or_fitness') {
+    const roundData = PORN_OR_FITNESS_ROUNDS[state.currentRoundIndex];
+    const isFitness = roundData?.isFitness ?? false;
+    result.correctAnswer = isFitness;
+    result.playerAnswers = {};
+    for (const [id, answer] of Object.entries(state.answers)) {
+      const correct = answer === isFitness;
+      const pointsEarned = correct ? 100 : 0;
+      result.playerAnswers[id] = { answer, correct, pointsEarned };
+      const p = players.get(id);
+      if (p) p.score += pointsEarned;
     }
   }
 

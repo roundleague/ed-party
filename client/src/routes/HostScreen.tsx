@@ -282,6 +282,32 @@ export default function HostScreen() {
         </div>
       )}
 
+      {/* ── PORN OR FITNESS – prompt ─────────────────────────────────────── */}
+      {phase === 'prompt' && currentGameType === 'porn_or_fitness' && currentPrompt && (
+        <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-slide-up">
+          <RoundBadge prompt={currentPrompt} />
+          <div className="relative rounded-3xl overflow-hidden max-w-sm w-full bg-white/5 border border-white/10">
+            {currentPrompt.photoUrl ? (
+              <>
+                <img src={currentPrompt.photoUrl} alt="Round" className="w-full object-cover max-h-72" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                <div className="absolute inset-x-0 top-1/4 h-1/2 backdrop-blur-2xl bg-black/50" />
+              </>
+            ) : (
+              <div className="w-full h-64 flex flex-col items-center justify-center gap-2">
+                <div className="text-6xl">📷</div>
+                <p className="text-white/30">Add photo to /assets/pof/round-{currentPrompt.roundNumber}.jpg</p>
+              </div>
+            )}
+          </div>
+          <div className="flex gap-6">
+            <div className="glass px-8 py-4 rounded-2xl text-2xl font-black text-rose-400">🍆 PORN</div>
+            <div className="glass px-8 py-4 rounded-2xl text-2xl font-black text-blue-400">💪 FITNESS</div>
+          </div>
+          <AnsweredBar answered={answeredCount} total={connectedCount} />
+          <HostControls onNext={hostNext} onReset={hostReset} nextLabel="Reveal →" />
+        </div>
+      )}
+
       {/* ── ED'S LOVE LIFE – prompt ──────────────────────────────────────── */}
       {phase === 'prompt' && currentGameType === 'love_life' && currentPrompt && (
         <div className="flex-1 flex flex-col items-center justify-center gap-8 animate-slide-up">
@@ -453,6 +479,39 @@ export default function HostScreen() {
                 })}
               </div>
             </div>
+          )}
+
+          {/* PORN OR FITNESS results */}
+          {results.type === 'porn_or_fitness' && (
+            <>
+              <div className="text-center">
+                <div className="text-8xl mb-4">{results.correctAnswer ? '💪' : '🍆'}</div>
+                <div className="text-6xl font-black">
+                  {results.correctAnswer
+                    ? <span className="text-blue-400">THAT'S FITNESS!</span>
+                    : <span className="text-rose-400">THAT'S PORN!</span>
+                  }
+                </div>
+              </div>
+              {results.playerAnswers && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-3xl w-full">
+                  {players.map((p) => {
+                    const entry = results.playerAnswers?.[p.id];
+                    return (
+                      <div key={p.id} className={`glass rounded-2xl p-4 text-center border ${entry?.correct ? 'border-green-500/50 bg-green-500/10' : 'border-red-500/30'}`}>
+                        <PlayerAvatar player={p} size="sm" showName showScore={false} />
+                        <div className={`text-lg mt-1 font-bold ${entry?.correct ? 'text-green-400' : 'text-white/40'}`}>
+                          {entry ? (entry.answer ? '💪' : '🍆') : '—'}
+                        </div>
+                        <div className={`text-xl font-black ${entry?.correct ? 'text-green-400' : 'text-red-400'}`}>
+                          {entry?.correct ? '+100' : '0'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
 
           {/* ED'S LOVE LIFE results */}
