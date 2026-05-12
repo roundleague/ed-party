@@ -184,6 +184,14 @@ const ED_STORIES: { memory: string; author: string }[] = [
     memory: "This is the moment I think me and Eddie became really close. Our first mission trip together, crying, laughing, doing manual labor and fighting over a girl in the most stupid way possible. I will forever hold this over his head that I walked away the winner and although it was a stupid bet I'll always remember the memories of Eddie seeing my ADULT penis for the first time (it was a really cold alaska night tho if anyone asks)",
     author: "Taylor",
   },
+  {
+    memory: "When we almost got canceled by PETA and peta enthusiasts for trying to spread Christmas joy of giving out free fish to fellow students.",
+    author: "Nick",
+  },
+  {
+    memory: "My favorite memory is when we were playing Horse in college and Eddie from half court says \"What's that guys name? Kody!\" (RIP Kobe) and shoots a complete airball.",
+    author: "Ryan",
+  },
 ];
 
 // ─── ✏️ CUSTOMIZE: Draw Ed prompts ───────────────────────────────────────────

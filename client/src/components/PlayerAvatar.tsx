@@ -41,7 +41,7 @@ export default function PlayerAvatar({
           src={imgSrc}
           alt={player.name}
           onError={() => setImgSrc(avatarFallbackSvg(player.name, 112))}
-          className={`${s.img} rounded-full object-cover ${
+          className={`${s.img} rounded-2xl object-contain bg-white/5 ${
             highlight
               ? 'ring-4 ring-yellow-400 shadow-lg shadow-yellow-400/30'
               : 'ring-2 ring-white/10'

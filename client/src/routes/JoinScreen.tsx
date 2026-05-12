@@ -173,7 +173,7 @@ export default function JoinScreen() {
                     <img
                       src={iconUrl}
                       alt={fileName}
-                      className="w-16 h-16 rounded-full object-cover"
+                      className="w-16 h-16 rounded-2xl object-contain bg-white/5"
                     />
                     <span className="text-xs font-semibold capitalize text-white/70 truncate w-full text-center">
                       {fileName}
@@ -311,11 +311,11 @@ export default function JoinScreen() {
           <div className="text-center text-white/40 text-xs uppercase tracking-widest">
             Round {currentPrompt.roundNumber}/{currentPrompt.totalRounds}
           </div>
-          <div className="rounded-2xl overflow-hidden bg-white/5 border border-white/10">
+          <div className="rounded-2xl overflow-hidden bg-white/5 border border-white/10 h-64">
             {currentPrompt.photoUrl ? (
-              <img src={currentPrompt.photoUrl} alt="Round" className="w-full object-cover max-h-56" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              <img src={currentPrompt.photoUrl} alt="Round" className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             ) : (
-              <div className="w-full h-40 flex items-center justify-center">
+              <div className="w-full h-full flex items-center justify-center">
                 <span className="text-white/20 text-4xl">📸</span>
               </div>
             )}

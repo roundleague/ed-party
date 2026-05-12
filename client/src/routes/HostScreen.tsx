@@ -286,11 +286,11 @@ export default function HostScreen() {
       {phase === 'prompt' && currentGameType === 'relive_the_photo' && currentPrompt && (
         <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-slide-up">
           <RoundBadge prompt={currentPrompt} />
-          <div className="rounded-3xl overflow-hidden max-w-sm w-full bg-white/5 border border-white/10">
+          <div className="rounded-3xl overflow-hidden max-w-sm w-full h-80 bg-white/5 border border-white/10">
             {currentPrompt.photoUrl ? (
-              <img src={currentPrompt.photoUrl} alt="Round" className="w-full object-cover max-h-64" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              <img src={currentPrompt.photoUrl} alt="Round" className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             ) : (
-              <div className="w-full h-48 flex items-center justify-center">
+              <div className="w-full h-full flex items-center justify-center">
                 <div className="text-6xl">📸</div>
               </div>
             )}

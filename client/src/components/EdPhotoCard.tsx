@@ -7,10 +7,10 @@ interface Props {
 }
 
 const SIZE_MAP = {
-  sm:  'w-24 h-24',
-  md:  'w-36 h-36',
-  lg:  'w-52 h-52',
-  xl:  'w-72 h-72',
+  sm:  'w-24',
+  md:  'w-36',
+  lg:  'w-52',
+  xl:  'w-72',
 };
 
 // Subtle random tilt so photos feel candid / pinned-up
@@ -25,7 +25,7 @@ export default function EdPhotoCard({ src, size = 'md', className = '', caption,
         <img
           src={src}
           alt="Ed"
-          className="w-full h-full object-cover object-top"
+          className="w-full h-auto object-contain"
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
         />
       </div>
