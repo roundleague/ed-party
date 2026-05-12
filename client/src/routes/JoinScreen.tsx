@@ -303,44 +303,28 @@ export default function JoinScreen() {
     );
   }
 
-  // ── PORN OR FITNESS – vote ────────────────────────────────────────────────
-  if (phase === 'prompt' && currentGameType === 'porn_or_fitness' && currentPrompt) {
+  // ── RELIVE THE PHOTO – watch Ed guess ────────────────────────────────────
+  if (phase === 'prompt' && currentGameType === 'relive_the_photo' && currentPrompt) {
     return (
       <PhoneShell scroll>
-        <div className="flex flex-col gap-4 px-4 py-5 justify-center">
+        <div className="flex flex-col gap-4 px-4 py-5">
           <div className="text-center text-white/40 text-xs uppercase tracking-widest">
             Round {currentPrompt.roundNumber}/{currentPrompt.totalRounds}
           </div>
-          <div className="relative rounded-2xl overflow-hidden bg-white/5 border border-white/10">
+          <div className="rounded-2xl overflow-hidden bg-white/5 border border-white/10">
             {currentPrompt.photoUrl ? (
-              <>
-                <img src={currentPrompt.photoUrl} alt="Round" className="w-full object-cover max-h-56" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                <div className="absolute inset-x-0 top-1/4 h-1/2 backdrop-blur-2xl bg-black/50" />
-              </>
+              <img src={currentPrompt.photoUrl} alt="Round" className="w-full object-cover max-h-56" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             ) : (
               <div className="w-full h-40 flex items-center justify-center">
-                <span className="text-white/20 text-4xl">📷</span>
+                <span className="text-white/20 text-4xl">📸</span>
               </div>
             )}
           </div>
-          {!hasAnswered ? (
-            <div className="flex gap-3">
-              <button
-                onClick={() => { submitAnswer(false); playSound('click'); }}
-                className="flex-1 phone-btn bg-gradient-to-br from-rose-600 to-red-800 text-white py-6 text-xl font-black"
-              >
-                🍆 PORN
-              </button>
-              <button
-                onClick={() => { submitAnswer(true); playSound('click'); }}
-                className="flex-1 phone-btn bg-gradient-to-br from-blue-600 to-indigo-800 text-white py-6 text-xl font-black"
-              >
-                💪 FITNESS
-              </button>
-            </div>
-          ) : (
-            <WaitingMsg />
-          )}
+          <div className="text-center py-2">
+            <div className="text-3xl mb-2">🤔</div>
+            <p className="text-white font-bold">Ed is guessing...</p>
+            <p className="text-white/40 text-sm mt-1">Watch the host screen!</p>
+          </div>
         </div>
       </PhoneShell>
     );
@@ -713,6 +697,7 @@ function WaitingMsg() {
   );
 }
 
+
 function getGameEmoji(gameType: string | null): string {
   const map: Record<string, string> = {
     who_knows_ed: '🧠',
@@ -721,7 +706,7 @@ function getGameEmoji(gameType: string | null): string {
     fastest_finger: '⚡',
     most_likely_to: '🤔',
     love_life: '💘',
-    porn_or_fitness: '👀',
+    relive_the_photo: '📸',
   };
   return map[gameType ?? ''] ?? '🎮';
 }
@@ -734,7 +719,7 @@ function getGameHint(gameType: string | null): string {
     fastest_finger: 'Tap the button as fast as you can!',
     most_likely_to: 'Vote for the person who fits best!',
     love_life: 'Arrange the names earliest to latest!',
-    porn_or_fitness: 'Porn or fitness? You decide!',
+    relive_the_photo: 'Guess the year the photo was taken!',
   };
   return map[gameType ?? ''] ?? 'Get ready!';
 }

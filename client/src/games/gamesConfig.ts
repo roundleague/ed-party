@@ -20,7 +20,7 @@ export type GameType =
   | 'fastest_finger'
   | 'most_likely_to'
   | 'love_life'
-  | 'porn_or_fitness';
+  | 'relive_the_photo';
 
 export interface Player {
   id: string;
@@ -119,7 +119,7 @@ export const GAME_COLORS: Record<GameType, string> = {
   fastest_finger: 'from-yellow-500 to-orange-700',
   most_likely_to: 'from-green-600 to-teal-800',
   love_life: 'from-rose-500 to-pink-800',
-  porn_or_fitness: 'from-fuchsia-600 to-purple-800',
+  relive_the_photo: 'from-amber-500 to-orange-700',
 };
 
 export const GAME_EMOJIS: Record<GameType, string> = {
@@ -129,7 +129,7 @@ export const GAME_EMOJIS: Record<GameType, string> = {
   fastest_finger: '⚡',
   most_likely_to: '🤔',
   love_life: '💘',
-  porn_or_fitness: '👀',
+  relive_the_photo: '📸',
 };
 
 export const ROOM_CODE = 'ED2026';

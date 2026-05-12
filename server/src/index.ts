@@ -143,6 +143,11 @@ io.on('connection', (socket) => {
     gm.hostNext();
   });
 
+  // ── host_award_photo ─────────────────────────────────────────────────────────
+  socket.on('host_award_photo', ({ playerId }: { playerId: string }) => {
+    gm.awardPhotoPoints(playerId);
+  });
+
   // ── tap_action ──────────────────────────────────────────────────────────────
   socket.on('tap_action', ({ playerId }: { playerId: string }) => {
     gm.tapAction(playerId);

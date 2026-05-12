@@ -30,7 +30,7 @@ function useJoinUrl() {
 
 export default function HostScreen() {
   const joinUrl = useJoinUrl();
-  const { gameState, hostNext, hostStartGame, hostReset, hostAwardMemory } = useSocket();
+  const { gameState, hostNext, hostStartGame, hostReset, hostAwardMemory, hostAwardPhoto } = useSocket();
   const { phase, players, currentPrompt, currentGameType, currentGameName, results, answeredPlayerIds } = gameState;
   const { photos, random } = useEdPhotos();
   const { playRandomClip, stopClip } = useClips();
@@ -282,29 +282,39 @@ export default function HostScreen() {
         </div>
       )}
 
-      {/* ── PORN OR FITNESS – prompt ─────────────────────────────────────── */}
-      {phase === 'prompt' && currentGameType === 'porn_or_fitness' && currentPrompt && (
+      {/* ── RELIVE THE PHOTO – host picks correct/shot ───────────────────── */}
+      {phase === 'prompt' && currentGameType === 'relive_the_photo' && currentPrompt && (
         <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-slide-up">
           <RoundBadge prompt={currentPrompt} />
-          <div className="relative rounded-3xl overflow-hidden max-w-sm w-full bg-white/5 border border-white/10">
+          <div className="rounded-3xl overflow-hidden max-w-sm w-full bg-white/5 border border-white/10">
             {currentPrompt.photoUrl ? (
-              <>
-                <img src={currentPrompt.photoUrl} alt="Round" className="w-full object-cover max-h-72" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                <div className="absolute inset-x-0 top-1/4 h-1/2 backdrop-blur-2xl bg-black/50" />
-              </>
+              <img src={currentPrompt.photoUrl} alt="Round" className="w-full object-cover max-h-64" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             ) : (
-              <div className="w-full h-64 flex flex-col items-center justify-center gap-2">
-                <div className="text-6xl">📷</div>
-                <p className="text-white/30">Add photo to /assets/pof/round-{currentPrompt.roundNumber}.jpg</p>
+              <div className="w-full h-48 flex items-center justify-center">
+                <div className="text-6xl">📸</div>
               </div>
             )}
           </div>
-          <div className="flex gap-6">
-            <div className="glass px-8 py-4 rounded-2xl text-2xl font-black text-rose-400">🍆 PORN</div>
-            <div className="glass px-8 py-4 rounded-2xl text-2xl font-black text-blue-400">💪 FITNESS</div>
+          <div className="text-white/50 text-sm uppercase tracking-widest">Tap who got it right to award +100</div>
+          <div className="flex flex-wrap gap-3 justify-center max-w-3xl">
+            {players.filter((p) => p.connected).map((p) => (
+              <button
+                key={p.id}
+                onClick={() => hostAwardPhoto(p.id)}
+                className="flex items-center gap-3 glass px-6 py-3 rounded-2xl font-bold text-lg hover:border-green-500/60 hover:bg-green-500/10 active:scale-95 transition-all"
+              >
+                <PlayerAvatar player={p} size="sm" showName={false} />
+                {p.name}
+              </button>
+            ))}
           </div>
-          <AnsweredBar answered={answeredCount} total={connectedCount} />
-          <HostControls onNext={hostNext} onReset={hostReset} nextLabel="Reveal →" />
+          <button
+            onClick={hostNext}
+            className="px-10 py-4 rounded-2xl bg-gradient-to-r from-orange-600 to-red-700 text-white text-xl font-black active:scale-95 hover:from-orange-500 hover:to-red-600 transition-all"
+          >
+            🥃 Take a Shot — Next
+          </button>
+          <HostControls onNext={hostNext} onReset={hostReset} showNext={false} nextLabel="" />
         </div>
       )}
 
@@ -481,38 +491,6 @@ export default function HostScreen() {
             </div>
           )}
 
-          {/* PORN OR FITNESS results */}
-          {results.type === 'porn_or_fitness' && (
-            <>
-              <div className="text-center">
-                <div className="text-8xl mb-4">{results.correctAnswer ? '💪' : '🍆'}</div>
-                <div className="text-6xl font-black">
-                  {results.correctAnswer
-                    ? <span className="text-blue-400">THAT'S FITNESS!</span>
-                    : <span className="text-rose-400">THAT'S PORN!</span>
-                  }
-                </div>
-              </div>
-              {results.playerAnswers && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-3xl w-full">
-                  {players.map((p) => {
-                    const entry = results.playerAnswers?.[p.id];
-                    return (
-                      <div key={p.id} className={`glass rounded-2xl p-4 text-center border ${entry?.correct ? 'border-green-500/50 bg-green-500/10' : 'border-red-500/30'}`}>
-                        <PlayerAvatar player={p} size="sm" showName showScore={false} />
-                        <div className={`text-lg mt-1 font-bold ${entry?.correct ? 'text-green-400' : 'text-white/40'}`}>
-                          {entry ? (entry.answer ? '💪' : '🍆') : '—'}
-                        </div>
-                        <div className={`text-xl font-black ${entry?.correct ? 'text-green-400' : 'text-red-400'}`}>
-                          {entry?.correct ? '+100' : '0'}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </>
-          )}
 
           {/* ED'S LOVE LIFE results */}
           {results.type === 'love_life' && results.loveLifeCorrectOrder && (
