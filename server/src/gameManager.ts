@@ -192,6 +192,10 @@ const ED_STORIES: { memory: string; author: string }[] = [
     memory: "My favorite memory is when we were playing Horse in college and Eddie from half court says \"What's that guys name? Kody!\" (RIP Kobe) and shoots a complete airball.",
     author: "Ryan",
   },
+  {
+    memory: "First time Eddie smoked weed we were hot boxing my car. He didn't know how he would know when he would be high. Threw up out the side of the passenger seat, twice, forgot he threw up and had to keep checking. Went to pick up some friends the next day with our car smelling \"earthy\"",
+    author: "Ethan",
+  },
 ];
 
 // ─── ✏️ CUSTOMIZE: Draw Ed prompts ───────────────────────────────────────────
@@ -233,6 +237,7 @@ const RELIVE_THE_PHOTO_ROUNDS: { photoUrl: string }[] = [
   { photoUrl: '/assets/photo_guess/tim.png' },
   { photoUrl: '/assets/photo_guess/tony.jpg' },
   { photoUrl: '/assets/photo_guess/tyler.jpg' },
+  { photoUrl: '/assets/photo_guess/ethan.png' },
 ];
 
 // ─── ✏️ CUSTOMIZE: Most Likely To prompts ────────────────────────────────────
